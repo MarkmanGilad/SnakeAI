@@ -1,15 +1,15 @@
 import pygame
 import torch
-from Environment import Environment
+from Environment import *
 from AgentDQN import AgentDQN
 from ReplayBuffer import ReplayBuffer
 import wandb
 
-MIN_BUFFER = 300
-epsilon_start, epsilon_final, epsiln_decay = 1, 0.05, 200
+MIN_BUFFER = 1000
+epsilon_start, epsilon_final, epsiln_decay = 1, 0.05, 400
 
 def main():
-    num = 31
+    num = 54
 
     pygame.init()
     env = Environment()
@@ -25,10 +25,10 @@ def main():
     batch_size = 128
     buffer = ReplayBuffer()
 
-    learning_rate = 0.01
+    learning_rate = 0.001
     epochs = 200000
     start_epoch = 0
-    C = 50
+    C = 20
 
     loss = torch.tensor(0.0)
     avg = 0
@@ -58,6 +58,11 @@ def main():
         "batch_size": batch_size, 
         "C": C,
         "Model":str(player.DQN),
+        "REWARD_WIN":REWARD_WIN,
+        "REWARD_LOSE": REWARD_LOSE,
+        "REWARD_CLOSER": REWARD_CLOSER,
+        "REWARD_FARTHER":REWARD_FARTHER,
+        "REWARD_EAT": REWARD_EAT
         #"device": str(device)
         })
 
@@ -80,7 +85,7 @@ def main():
 
             reward, done = env.move_env(action)
             next_state = env.to_tensor()
-
+            
             buffer.push(
                 state,
                 torch.tensor([[action]], dtype=torch.int64),
@@ -122,7 +127,7 @@ def main():
 
 
         print(
-            f"epoch: {epoch} loss: {loss:.6f} LR: {scheduler.get_last_lr()} "
+            f"num: {num} epoch: {epoch} loss: {loss:.6f} LR: {scheduler.get_last_lr()} "
             f"score: {env.score} best_score: {best_score} step: {step}"
         )
         

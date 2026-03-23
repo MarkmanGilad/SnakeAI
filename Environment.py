@@ -4,10 +4,10 @@ from Graphics import *
 import random
 import time
 
-REWARD_WIN = 10
+REWARD_WIN = 5
 REWARD_LOSE = -3
-REWARD_CLOSER = 0.2
-REWARD_FARTHER = -0.4
+REWARD_CLOSER = 0.4
+REWARD_FARTHER = -0.5
 REWARD_EAT = 5
 
 
@@ -39,6 +39,7 @@ class Environment:
         if device is not None:
             tensor = tensor.to(device)
         return tensor
+   
 
     def get_head(self):
         return self.snake[0]    
@@ -64,13 +65,8 @@ class Environment:
         if head in self.mouse[:]:  # If the snake eats a mouse
             self.score += 1
             self.mouse.pop(0)  # Remove the eaten mouse
-
             # Ensure a new mouse is always generated
-            while True:
-                random_point = (random.randint(0, 16), random.randint(0, 16))  # Keep within board limits
-                if random_point not in self.snake:  # Ensure mouse doesn't spawn inside the snake
-                    self.mouse.append(random_point)
-                    break  # Exit loop once a valid position is found
+            self.init_mouse()
 
             return True
         return False
@@ -252,24 +248,30 @@ class Environment:
 
         reward = self.closer(action)
 
-        if self.is_about_to_eat(action):
-            reward = REWARD_EAT
-
-        # Eating
-        if self.is_eat():
-            head = self.get_head()
-            new_head = (head[0], head[1])
-            self.snake.insert(0, new_head)
-            
-
+        # 
+        
         # Board full (win)
         if self.is_board_full():
             return REWARD_WIN, True
 
-        # Move snake
-        done = self.move(action)
-        if done:
-            return REWARD_LOSE, done
+        # Eating
+        if self.is_about_to_eat(action):
+            reward = REWARD_EAT
+            done = False
+            self.snake.insert(0, self.mouse[0])
+            self.init_mouse()
+            self.score += 1
+            
+        else: # Move snake
+            done = self.move(action)
+            if done:
+                return REWARD_LOSE, done
+                        
+        # if self.is_eat():
+        #     head = self.get_head()
+        #     new_head = (head[0], head[1])
+        #     self.snake.insert(0, new_head)
+        #     reward = REWARD_EAT
         
         # Bomb logic
         on_second_screen = (self.score >= 10)
@@ -292,9 +294,14 @@ class Environment:
         return reward, done
     
     def init_mouse(self):
-        row = random.randint(1,15)
-        col = random.randint(1,15)
-        self.mouse = [(row, col)]
+        # row = random.randint(1,15)
+        # col = random.randint(1,15)
+        # self.mouse = [(row, col)]
+        while True:
+            random_point = (random.randint(1, 15), random.randint(1, 15))  # Keep within board limits
+            if random_point not in self.snake:  # Ensure mouse doesn't spawn inside the snake
+                self.mouse = [(random_point)]
+                break  # Exit loop once a valid position is found
     
     def init_snake(self):
         head_row = random.randint(4,12)
