@@ -1,15 +1,14 @@
 import pygame
 import torch
 from Environment import *
-from AgentDQN import AgentDQN
+from AgentDQN import *
 from ReplayBuffer import ReplayBuffer
 import wandb
 
 MIN_BUFFER = 1000
-epsilon_start, epsilon_final, epsiln_decay = 1, 0.05, 400
 
 def main():
-    num = 54
+    num = 56
 
     pygame.init()
     env = Environment()
@@ -118,10 +117,10 @@ def main():
             loss.backward()
             optim.step()
             optim.zero_grad()
-            scheduler.step()
+            
 
         ######## TARGET UPDATE ########
-
+        scheduler.step()
         if epoch % C == 0:
             player_hat.fix_update(player.DQN)
 

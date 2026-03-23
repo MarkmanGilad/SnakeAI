@@ -4,7 +4,7 @@ import math
 from DQN import DQN
 from Graphics import *
 
-epsilon_start, epsilon_final, epsiln_decay = 1, 0.05, 50
+epsilon_start, epsilon_final, epsiln_decay = 1, 0.05, 400
 
 class AgentDQN:
     def __init__(self, parametes_path = None, train = True, env= None, devive = torch.device('cpu')):
