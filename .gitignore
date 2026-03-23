@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+
+# Local env vars
+.env
+
+# Weights & Biases run artifacts (can include very large files)
+wandb/
