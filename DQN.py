@@ -7,7 +7,7 @@ import copy
 layer1 = 128
 layer2 = 64
 output_size = 4 # Q(state)-> 4 value of up, down, left, right
-gamma = 0.95 
+gamma = 0.99 
  
 
 class DQN (nn.Module):
@@ -15,9 +15,9 @@ class DQN (nn.Module):
         super().__init__()
         self.device = device
         self.conv1 = nn.Conv2d(1, 16, 3, 1, padding=1)
-        self.conv2 = nn.Conv2d(16, 32, 3, 1, padding=1)
-        self.fc = nn.Linear(32 * 17 * 17, 256)
-        self.output = nn.Linear(256, output_size)
+        self.conv2 = nn.Conv2d(16, 16, 3, 1, padding=1)
+        self.fc = nn.Linear(16 * 17 * 17, 64)
+        self.output = nn.Linear(64, output_size)
         self.MSELoss = nn.MSELoss()
 
     def forward (self, x):

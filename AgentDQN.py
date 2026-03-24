@@ -1,7 +1,7 @@
 import torch
 import random
 import math
-from DQN import DQN
+from DQN import *
 from Graphics import *
 
 epsilon_start, epsilon_final, epsiln_decay = 1, 0.05, 400

@@ -8,7 +8,7 @@ import wandb
 MIN_BUFFER = 1000
 
 def main():
-    num = 56
+    num = 68
 
     pygame.init()
     env = Environment()
@@ -53,7 +53,7 @@ def main():
         "epochs": epochs,
         "start_epoch": start_epoch,
         "decay": epsiln_decay,
-        "gamma": 0.99,
+        "gamma": gamma,
         "batch_size": batch_size, 
         "C": C,
         "Model":str(player.DQN),
