@@ -4,6 +4,7 @@ import random
 import time
 from Graphics import *
 from Environment import *
+from Constant import *
 from HumanAgent import HumanAgent
 from AgentDQN import AgentDQN
 
@@ -47,7 +48,7 @@ class Environment ():
 
             # Redraw the board
             self.graphics.draw(self.state)
-            clock.tick(10)
+            clock.tick(FPS)
 
         # Game ended - automatically restart without showing exit screen
         return True

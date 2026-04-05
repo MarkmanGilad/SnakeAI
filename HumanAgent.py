@@ -1,5 +1,6 @@
 import numpy as np
 import pygame
+from Constant import *
 
 class HumanAgent:
     
@@ -7,12 +8,12 @@ class HumanAgent:
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    return 1
+                    return ACTION_UP
                 elif event.key == pygame.K_DOWN:
-                    return 2
+                    return ACTION_DOWN
                 elif event.key == pygame.K_LEFT:
-                    return 3
+                    return ACTION_LEFT
                 elif event.key == pygame.K_RIGHT:
-                    return 4
+                    return ACTION_RIGHT
 
                 return None

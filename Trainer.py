@@ -3,12 +3,11 @@ import torch
 from Environment import *
 from AgentDQN import *
 from ReplayBuffer import ReplayBuffer
+from Constant import *
 import wandb
 
-MIN_BUFFER = 1000
-
 def main():
-    num = 68
+    num = 102
 
     pygame.init()
     env = Environment()
@@ -21,22 +20,16 @@ def main():
     player_hat = AgentDQN()
     player_hat.DQN = player.DQN.copy()
 
-    batch_size = 128
     buffer = ReplayBuffer()
-
-    learning_rate = 0.001
-    epochs = 200000
-    start_epoch = 0
-    C = 20
 
     loss = torch.tensor(0.0)
     avg = 0
     scores, losses, avg_score = [], [], []
 
-    optim = torch.optim.Adam(player.DQN.parameters(), lr=learning_rate)
+    optim = torch.optim.Adam(player.DQN.parameters(), lr=LEARNING_RATE)
 
     scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        optim, [5000, 10000, 20000], gamma=0.5
+        optim, SCHEDULER_MILESTONES, gamma=SCHEDULER_GAMMA
     )
 
     
@@ -45,17 +38,18 @@ def main():
         # set the wandb project where this run will be logged
         project=project,
         id = f'{project}_{num}',
+        resume="never",
         # track hyperparameters and run metadata
         config={
         "name": f"SnakeAI",
-        "learning_rate": learning_rate,
+        "learning_rate": LEARNING_RATE,
         "Schedule": f'{str(scheduler.milestones)} gamma={str(scheduler.gamma)}',
-        "epochs": epochs,
-        "start_epoch": start_epoch,
-        "decay": epsiln_decay,
-        "gamma": gamma,
-        "batch_size": batch_size, 
-        "C": C,
+        "epochs": EPOCHS,
+        "start_epoch": START_EPOCH,
+        "decay": EPSILON_DECAY,
+        "gamma": GAMMA,
+        "batch_size": BATCH_SIZE, 
+        "C": TARGET_UPDATE_FREQ,
         "Model":str(player.DQN),
         "REWARD_WIN":REWARD_WIN,
         "REWARD_LOSE": REWARD_LOSE,
@@ -65,16 +59,18 @@ def main():
         #"device": str(device)
         })
 
-    for epoch in range(start_epoch, epochs):
+    for epoch in range(START_EPOCH, EPOCHS):
 
         env.reset()
-        end_of_game = False
         state = env.to_tensor()
         step = 0
-        while not end_of_game:
+        steps_since_eat = 0
+        prev_score = 0
+        while True:
 
             print(step, end="\r")
             step += 1
+            steps_since_eat += 1
 
             pygame.event.get()
             env.graphics.draw(env)
@@ -97,20 +93,28 @@ def main():
                 best_score = max(best_score, env.score)
                 break
 
+            if env.score > prev_score:
+                steps_since_eat = 0
+                prev_score = env.score
+
+            if steps_since_eat >= MAX_STEPS_WITHOUT_EAT:
+                break
+
             state = next_state
 
 
-            if len(buffer) < MIN_BUFFER:
+            if len(buffer) < MIN_BUFFER_SIZE:
                 continue
 
             ######## TRAIN ########
 
-            states, actions, rewards, next_states, dones = buffer.sample(batch_size)
+            states, actions, rewards, next_states, dones = buffer.sample(BATCH_SIZE)
 
             Q_values = player.Q(states, actions)
 
             next_actions, _ = player.get_Actions_Values(next_states)
-            Q_hat_values = player_hat.Q(next_states, next_actions)
+            with torch.no_grad():
+                Q_hat_values = player_hat.Q(next_states, next_actions)
 
             loss = player.DQN.loss(Q_values, rewards, Q_hat_values, dones)
 
@@ -121,7 +125,7 @@ def main():
 
         ######## TARGET UPDATE ########
         scheduler.step()
-        if epoch % C == 0:
+        if epoch % TARGET_UPDATE_FREQ == 0:
             player_hat.fix_update(player.DQN)
 
 
@@ -139,15 +143,15 @@ def main():
 		})
 
 
-        if epoch % 10 == 0:
+        if epoch % LOG_INTERVAL == 0:
             scores.append(env.score)
             losses.append(loss.item())
 
-        avg = (avg * (epoch % 10) + env.score) / (epoch % 10 + 1)
+        avg = (avg * (epoch % LOG_INTERVAL) + env.score) / (epoch % LOG_INTERVAL + 1)
 
-        if (epoch + 1) % 10 == 0:
+        if (epoch + 1) % LOG_INTERVAL == 0:
             avg_score.append(avg)
-            print(f"average score last 10 games: {avg}")
+            print(f"average score last {LOG_INTERVAL} games: {avg}")
             avg = 0
 
 

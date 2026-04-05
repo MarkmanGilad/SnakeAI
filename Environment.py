@@ -1,20 +1,15 @@
 import numpy as np
 import torch
 from Graphics import *
+from Constant import *
 import random
 import time
-
-REWARD_WIN = 5
-REWARD_LOSE = -3
-REWARD_CLOSER = 0.5
-REWARD_FARTHER = -0.1
-REWARD_EAT = 5
 
 
 class Environment:
     def __init__(self):
         self.graphics = Graphics()
-        self.board = np.zeros([17,17])   ### למחוק
+        self.board = np.zeros([BOARD_SIZE, BOARD_SIZE])   ### למחוק
         # self.snake = [(5,6),(5,5)]
         # self.mouse = [(5,11)]
         self.init_snake()
@@ -25,12 +20,12 @@ class Environment:
         self.bomb = None
         # Minimum seconds before a new bomb can appear after previous explosion or spawn
         self._last_bomb_spawn_time = 0
-        self._bomb_cooldown = 3  # seconds before another bomb may spawn
+        self._bomb_cooldown = BOMB_COOLDOWN
         self.action = 1
 
 
     def to_tensor(self, device=None):
-        board = np.zeros([17,17], dtype=float)
+        board = np.zeros([BOARD_SIZE, BOARD_SIZE], dtype=float)
         board[self.snake[0]] = 1
         board[tuple(zip(*self.snake[1:]))] = 2
         board[self.mouse[0]] = 3
@@ -46,13 +41,13 @@ class Environment:
 
     def is_about_to_eat(self, action):
         head = self.get_head()
-        if action == 1:
+        if action == ACTION_UP:
             new_head = (head[0] - 1, head[1])
-        elif action == 2:
+        elif action == ACTION_DOWN:
             new_head = (head[0] + 1, head[1])
-        elif action == 3:
+        elif action == ACTION_LEFT:
             new_head = (head[0], head[1] - 1)
-        elif action == 4:
+        elif action == ACTION_RIGHT:
             new_head = (head[0], head[1] + 1)
 
         if new_head in self.mouse:
@@ -71,7 +66,7 @@ class Environment:
             return True
         return False
 
-    def spawn_bomb(self, min_distance=2, timer_seconds=3):
+    def spawn_bomb(self, min_distance=BOMB_MIN_DISTANCE, timer_seconds=BOMB_TIMER_SECONDS):
         # If there's already an active bomb, don't spawn another
         if self.bomb is not None:
             return False
@@ -160,13 +155,13 @@ class Environment:
     def move(self, action):
 
         head = self.get_head()
-        if action == 1:
+        if action == ACTION_UP:
             new_head = (head[0] - 1, head[1])
-        elif action == 2:
+        elif action == ACTION_DOWN:
             new_head = (head[0] + 1, head[1])
-        elif action == 3:
+        elif action == ACTION_LEFT:
             new_head = (head[0], head[1] - 1)
-        elif action == 4:
+        elif action == ACTION_RIGHT:
             new_head = (head[0], head[1] + 1)
         else:
             return False
@@ -205,11 +200,11 @@ class Environment:
             if not self.move(action):
                 return False
 
-        # Bomb logic: spawn bombs only when on screen 2 (score >= 10)
-        on_second_screen = (self.score >= 10)
+        # Bomb logic: spawn bombs only when on screen 2 (score >= SECOND_SCREEN_SCORE)
+        on_second_screen = (self.score >= SECOND_SCREEN_SCORE)
         if self.bomb is None and on_second_screen:
-            if random.random() < 0.015:
-                self.spawn_bomb(min_distance=2, timer_seconds=3)
+            if random.random() < BOMB_SPAWN_PROBABILITY:
+                self.spawn_bomb()
         # If a bomb exists but we have left screen 2, remove it
         if self.bomb is not None and not on_second_screen:
             self.bomb = None
@@ -226,16 +221,16 @@ class Environment:
         mouse_r, mouse_c = self.mouse[0]
 
         #action Up
-        if action == 1 and head_r > mouse_r:
+        if action == ACTION_UP and head_r > mouse_r:
             reward = REWARD_CLOSER
         #action Down
-        elif action == 2 and head_r < mouse_r:
+        elif action == ACTION_DOWN and head_r < mouse_r:
             reward = REWARD_CLOSER
         #action Left
-        elif action == 3 and head_c > mouse_c:
+        elif action == ACTION_LEFT and head_c > mouse_c:
             reward = REWARD_CLOSER
         #action Right
-        elif action == 4 and head_c < mouse_c:
+        elif action == ACTION_RIGHT and head_c < mouse_c:
             reward = REWARD_CLOSER
             
         return reward
@@ -274,11 +269,11 @@ class Environment:
         #     reward = REWARD_EAT
         
         # Bomb logic
-        on_second_screen = (self.score >= 10)
+        on_second_screen = (self.score >= SECOND_SCREEN_SCORE)
 
         if self.bomb is None and on_second_screen:
-            if random.random() < 0.015:
-                self.spawn_bomb(min_distance=2, timer_seconds=3)
+            if random.random() < BOMB_SPAWN_PROBABILITY:
+                self.spawn_bomb()
 
         if self.bomb is not None and not on_second_screen:
             self.bomb = None
@@ -298,21 +293,21 @@ class Environment:
         # col = random.randint(1,15)
         # self.mouse = [(row, col)]
         while True:
-            random_point = (random.randint(1, 15), random.randint(1, 15))  # Keep within board limits
+            random_point = (random.randint(MOUSE_INIT_MIN, MOUSE_INIT_MAX), random.randint(MOUSE_INIT_MIN, MOUSE_INIT_MAX))  # Keep within board limits
             if random_point not in self.snake:  # Ensure mouse doesn't spawn inside the snake
                 self.mouse = [(random_point)]
                 break  # Exit loop once a valid position is found
     
     def init_snake(self):
-        head_row = random.randint(4,12)
-        head_col = random.randint(4,12)
+        head_row = random.randint(SNAKE_INIT_MIN, SNAKE_INIT_MAX)
+        head_col = random.randint(SNAKE_INIT_MIN, SNAKE_INIT_MAX)
         body_dir = random.choice([(1,0),(-1,0),(0,1),(0,-1)])
         body_row = head_row + body_dir[0]
         body_col = head_col + body_dir[1]
         self.snake = [(head_row, head_col), (body_row, body_col)]
     
     def reset(self):
-        self.board = np.zeros([17,17])
+        self.board = np.zeros([BOARD_SIZE, BOARD_SIZE])
         # self.snake = [(5,6),(5,5)]
         # self.mouse = [(5,11)]
         self.init_snake()
@@ -321,7 +316,7 @@ class Environment:
         self.bomb = None
         # Minimum seconds before a new bomb can appear after previous explosion or spawn
         self._last_bomb_spawn_time = 0
-        self._bomb_cooldown = 3  # seconds before another bomb may spawn 
+        self._bomb_cooldown = BOMB_COOLDOWN
         
             
 

@@ -2,11 +2,10 @@ from collections import deque
 import random
 import torch
 import numpy as np
-
-capacity = 500000
+from Constant import *
     
 class ReplayBuffer:
-    def __init__(self, capacity= capacity, path = None) -> None:
+    def __init__(self, capacity=BUFFER_CAPACITY, path = None) -> None:
         if path:
             self.buffer = torch.load(path).buffer
         else:
