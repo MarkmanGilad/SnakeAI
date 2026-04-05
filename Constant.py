@@ -34,7 +34,7 @@ GAMMA = 0.99
 
 # ===================== EPSILON GREEDY =====================
 EPSILON_START = 1
-EPSILON_FINAL = 0.05
+EPSILON_FINAL = 0.01
 EPSILON_DECAY = 400
 
 # ===================== TRAINING =====================

@@ -7,7 +7,7 @@ from Constant import *
 import wandb
 
 def main():
-    num = 102
+    num = 103
 
     pygame.init()
     env = Environment()
@@ -46,17 +46,21 @@ def main():
         "Schedule": f'{str(scheduler.milestones)} gamma={str(scheduler.gamma)}',
         "epochs": EPOCHS,
         "start_epoch": START_EPOCH,
-        "decay": EPSILON_DECAY,
+        "epsilon_start": EPSILON_START,
+        "epsilon_final": EPSILON_FINAL,
+        "epsilon_decay": EPSILON_DECAY,
         "gamma": GAMMA,
-        "batch_size": BATCH_SIZE, 
-        "C": TARGET_UPDATE_FREQ,
+        "batch_size": BATCH_SIZE,
+        "target_update_freq": TARGET_UPDATE_FREQ,
+        "min_buffer_size": MIN_BUFFER_SIZE,
+        "buffer_capacity": BUFFER_CAPACITY,
+        "max_steps_without_eat": MAX_STEPS_WITHOUT_EAT,
         "Model":str(player.DQN),
         "REWARD_WIN":REWARD_WIN,
         "REWARD_LOSE": REWARD_LOSE,
         "REWARD_CLOSER": REWARD_CLOSER,
         "REWARD_FARTHER":REWARD_FARTHER,
         "REWARD_EAT": REWARD_EAT
-        #"device": str(device)
         })
 
     for epoch in range(START_EPOCH, EPOCHS):

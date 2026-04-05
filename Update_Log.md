@@ -94,3 +94,17 @@ Added `resume="never"` to `wandb.init()` to prevent silently resuming old runs w
 **Removed:**
 - **Constant.py** — Deleted `TAU = 0.001`.
 - **AgentDQN.py** — Deleted `soft_update` method, removed unused `tau` param from `fix_update`.
+
+### Epsilon Final Reduction
+
+Reduced `EPSILON_FINAL` from 0.05 to 0.01. At 0.05, the agent made a random move every ~20 steps — too likely to kill a long snake. At 0.01, it's every ~100 steps.
+
+**Files changed:**
+- **Constant.py** — `EPSILON_FINAL`: 0.05 → 0.01.
+
+### wandb Config Cleanup
+
+Added missing parameters to wandb config: `EPSILON_START`, `EPSILON_FINAL`, `MIN_BUFFER_SIZE`, `BUFFER_CAPACITY`, `MAX_STEPS_WITHOUT_EAT`. Renamed `decay` → `epsilon_decay`, `C` → `target_update_freq` for clarity.
+
+**Files changed:**
+- **Trainer.py** — Updated `wandb.init` config with all important hyperparameters.
