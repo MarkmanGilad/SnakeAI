@@ -1,5 +1,6 @@
 import pygame
 import torch
+import os
 from Environment import *
 from AgentDQN import *
 from ReplayBuffer import ReplayBuffer
@@ -94,7 +95,6 @@ def main():
             )
 
             if done:
-                best_score = max(best_score, env.score)
                 break
 
             if env.score > prev_score:
@@ -132,6 +132,14 @@ def main():
         if epoch % TARGET_UPDATE_FREQ == 0:
             player_hat.fix_update(player.DQN)
 
+        ######## CHECKPOINT ########
+        if env.score >= best_score and env.score >= 5:
+            player.save_param(os.path.join(CHECKPOINT_DIR, f"best_{num}.pth"))
+
+        if (epoch + 1) % CHECKPOINT_INTERVAL == 0:
+            player.save_param(os.path.join(CHECKPOINT_DIR, f"checkpoint_{num}_epoch{epoch+1}.pth"))
+
+        best_score = max(best_score, env.score)
 
         print(
             f"num: {num} epoch: {epoch} loss: {loss:.6f} LR: {scheduler.get_last_lr()} "

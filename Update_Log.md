@@ -108,3 +108,14 @@ Added missing parameters to wandb config: `EPSILON_START`, `EPSILON_FINAL`, `MIN
 
 **Files changed:**
 - **Trainer.py** — Updated `wandb.init` config with all important hyperparameters.
+
+### Checkpoint Saving
+
+The Trainer was not saving model parameters — all progress was lost on stop/crash. Added two save mechanisms:
+- **Best model** — saves to `Data/best_{num}.pth` when score ties or beats the best (threshold ≥ 5 to skip trivial early saves).
+- **Periodic** — saves to `Data/checkpoint_{num}_epoch{N}.pth` every `CHECKPOINT_INTERVAL = 1000` epochs.
+- Moved `best_score` update to after checkpoint check so new bests are properly detected.
+
+**Files changed:**
+- **Constant.py** — Added `CHECKPOINT_INTERVAL = 1000`, `CHECKPOINT_DIR = "Data"`.
+- **Trainer.py** — Added `import os`, checkpoint save logic, reordered `best_score` update.
